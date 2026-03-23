@@ -1,6 +1,6 @@
 {
   "short_name": "DinoJump",
-  "name": "Dino Jump Mobile Game",
+  "name": "Dino Jump Pro",
   "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#87CEEB",
@@ -8,9 +8,14 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/4CAF50/FFFFFF?text=DINO",
+      "src": "icon.png",
       "type": "image/png",
       "sizes": "192x192"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ]
 }
