@@ -1,14 +1,14 @@
 {
   "short_name": "DinoJump",
-  "name": "Dino Jump Mobile",
+  "name": "Dino Jump Mobile Game",
   "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#87CEEB",
   "background_color": "#87CEEB",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192",
+      "src": "https://via.placeholder.com/192/4CAF50/FFFFFF?text=DINO",
       "type": "image/png",
       "sizes": "192x192"
     }
