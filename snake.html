@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link rel="stylesheet" href="snake.css">
+</head>
+<body> 
+    <div class="game-container">
+        <div class="header">
+            <h2>Snake Game</h2>
+            <div id="score-board">Score: 0</div>
+            <div id="high-score">High Score: 0</div> 
+        </div>
+
+        <div class="canvas-wrapper">
+            <div id="start-menu" class="menu-overlay">
+                <div>
+                    <button class="start-switch" onclick="initGame()">START GAME</button>
+                    <p style="font-size: 12px; margin-top: 15px;">\u0D07\u0D24\u0D4A\u0D30\u0D41 \u0D2A\u0D3E\u0D2 Virgin \u0D2A\u0D4D \u0D17\u0D46\u0D2F\u0D3Entry \u0D06\u0D23\u0D4D \u0D38\u0D42\u0D15\u0D4D\u0D37\u0D3F\u0D1A\u0D4D\u0D1A\u0D41 \u0D15\u0D33\u0D3F\u0D15\u0D4D\u0D15\u0D41\u0D15</p>
+                </div>
+            </div>
+            <canvas id="snakeGame" width="300" height="300"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="ctrl-btn" onclick="changeDir('up')">▲</button>
+            <div class="side-btns">
+                <button class="ctrl-btn" onclick="changeDir('left')">◀</button>
+                <button class="ctrl-btn" onclick="changeDir('right')">▶</button>
+            </div>
+            <button class="ctrl-btn" onclick="changeDir('down')">▼</button>
+        </div>
+
+        <div class="menu-area">
+            <button class="reset-btn" onclick="resetGame()">Reset</button>
+            <button class="menu-btn" onclick="window.location.href='index.html'">Main Menu</button>
+        </div>
+    </div>
+    <script src="snake.js"></script>
+</body>
+</html>
