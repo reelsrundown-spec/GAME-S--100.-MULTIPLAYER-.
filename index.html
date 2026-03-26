@@ -86,11 +86,10 @@
         const settingsMenu = document.getElementById('settingsMenu');
         const musicToggle = document.getElementById('musicToggle');
         
-        // Music setup
         const bgMusic = new Audio('bgm.mp3');
         bgMusic.loop = true;
-        const bgMusic = new Audio('./bgm.mp3');
-        // Load saved preference if any
+        let musicEnabled = true;
+
         if(localStorage.getItem('musicPref') === 'off') {
             musicEnabled = false;
             musicToggle.innerText = "OFF";
@@ -100,10 +99,10 @@
         function startExperience() {
             if (musicEnabled) {
                 bgMusic.play().then(() => {
-                    // Once music starts, go to home page
-                    window.location.href = "home.html";
+                    setTimeout(() => {
+                        window.location.href = "home.html";
+                    }, 200); 
                 }).catch(e => {
-                    console.log("Audio failed", e);
                     window.location.href = "home.html";
                 });
             } else {
@@ -118,15 +117,7 @@
             musicEnabled = !musicEnabled;
             musicToggle.innerText = musicEnabled ? "ON" : "OFF";
             musicToggle.style.background = musicEnabled ? "#4CAF50" : "#00d2ff";
-            
-            // Save preference
             localStorage.setItem('musicPref', musicEnabled ? 'on' : 'off');
-            
-            if (musicEnabled) {
-                bgMusic.play();
-            } else {
-                bgMusic.pause();
-            }
         }
     </script>
 
