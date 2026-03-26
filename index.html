@@ -3,49 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Hub</title>
+    <title>Game Hub - Welcome</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
-        h1 { color: #00d2ff; margin-top: 50px; text-transform: uppercase; }
-        p { color: #aaa; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 400px; margin: 0 auto; }
-        .card { background: #1e1e1e; padding: 25px; border-radius: 20px; text-decoration: none; color: white; border: 2px solid #333; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
-        .card:active { transform: scale(0.95); background: #333; }
-        .icon { font-size: 50px; margin-bottom: 10px; }
-        .title { font-weight: bold; }
-        .locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
-        .soon { color: #888; font-size: 0.8rem; }
+        body {
+            margin: 0; padding: 0;
+            background: #121212;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+        .welcome-box {
+            padding: 40px 60px;
+            background: #1e1e1e;
+            border: 3px solid #00d2ff;
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+            transition: 0.3s;
+            text-align: center;
+        }
+        .welcome-box:active {
+            transform: scale(0.9);
+        }
+        .welcome-box h2 {
+            margin: 0;
+            color: #00d2ff;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        p { color: #555; margin-top: 15px; position: absolute; bottom: 50px; }
     </style>
 </head>
 <body>
-    <h1>ഡങ്കർ സോൺ</h1>
-    <p>Select a Game to Play</p>
-        <div class="grid">
-        <a href="dino.html" class="card">
-            <div class="icon">🦖</div>
-            <div class="title">Dino Jump</div>
-        </a>
 
-        <a href="snake.html" class="card">
-            <div class="icon">🐍</div>
-            <div class="title">Snake</div>
-        </a>
+    <a href="home.html" class="welcome-box">
+        <h2>ALL GAMES</h2>
+    </a>
 
-        <a href="bingo.html" class="card">
-            <div class="icon">🔢</div>
-            <div class="title">Bingo</div>
-        </a>
+    <p>Tap the box to start</p>
 
-        <div class="card locked">
-            <div class="icon">🧱</div>
-            <div class="title">Tetris (Soon)</div>
-        </a>
-            
-         <a href="chain.html" class="card">
-            <div class="icon">⚛️</div>
-            <div class="title">Chain Reaction</div>
-        </a>
-        
-    </div>
 </body>
 </html>
