@@ -16,7 +16,7 @@
 
     <div class="nav-bar">
         <a href="home.html" class="back-btn"><- Back</a>
-        <div id="score">Score: 0</div>
+        <div id="score">Score: 0 | Coins: 0</div>
     </div>
     
     <canvas id="doodleCanvas" width="350" height="500"></canvas>
@@ -26,7 +26,7 @@
         const ctx = canvas.getContext("2d");
         const scoreDisplay = document.getElementById("score");
 
-        // Audio Assets (Same as Dino Game)
+        // Audio Assets
         const jumpSound = new Audio('jump.mp3');
         const coinSound = new Audio('coin.mp3');
         const gameOverSound = new Audio('gameover.mp3');
@@ -44,8 +44,10 @@
             coins = [];
             score = 0;
             totalCoins = 0;
+            player.x = 155;
             player.y = 350;
             player.dy = 0;
+            updateScoreDisplay();
             for (let i = 0; i < 7; i++) {
                 addPlatform(i * 80);
             }
@@ -53,26 +55,37 @@
 
         function addPlatform(yPos) {
             let platX = Math.random() * (canvas.width - 65);
+            // Platforms start moving only after 30 coins
+            let shouldMove = (totalCoins >= 30) && (Math.random() > 0.6);
+            
             platforms.push({ 
                 x: platX, 
                 y: yPos, 
                 width: 65, 
                 height: 12,
-                isMoving: Math.random() > 0.7,
-                speed: Math.random() > 0.5 ? 1.5 : -1.5
+                isMoving: shouldMove,
+                speed: Math.random() > 0.5 ? 1.8 : -1.8
             });
 
-            // Add a coin on top of some platforms
-            if (Math.random() > 0.5) {
+            if (Math.random() > 0.4) {
                 coins.push({ x: platX + 25, y: yPos - 25, radius: 8, active: true });
             }
         }
 
+        function updateScoreDisplay() {
+            scoreDisplay.innerText = "Score: " + score + " | Coins: " + totalCoins;
+        }
+
+        // Improved Sensitivity Logic
         document.addEventListener("touchmove", (e) => {
             if (gameState !== "PLAY") return;
+            e.preventDefault();
             let rect = canvas.getBoundingClientRect();
-            player.x = (e.touches[0].clientX - rect.left) - player.width / 2;
-        });
+            let touchX = e.touches[0].clientX - rect.left;
+            
+            // Player follows finger more accurately
+            player.x = touchX - player.width / 2;
+        }, { passive: false });
 
         canvas.addEventListener("click", () => {
             if (gameState === "OVER") {
@@ -87,39 +100,42 @@
             player.dy += gravity;
             player.y += player.dy;
 
+            // Screen Wrapping
             if (player.x + player.width < 0) player.x = canvas.width;
             if (player.x > canvas.width) player.x = -player.width;
 
-            // Platform Collision
+            // Platform Collision & Movement
             platforms.forEach(p => {
                 if (p.isMoving) {
                     p.x += p.speed;
                     if (p.x < 0 || p.x + p.width > canvas.width) p.speed *= -1;
                 }
+                
                 if (player.dy > 0 && player.x + player.width > p.x && player.x < p.x + p.width &&
                     player.y + player.height > p.y && player.y + player.height < p.y + p.height + player.dy) {
                     player.dy = player.jump;
-                    jumpSound.play(); // Play Jump Sound
+                    jumpSound.play();
                 }
             });
 
-            // Coin Collection Logic
+            // Coin Collection
             coins.forEach(c => {
                 if (c.active && player.x < c.x + c.radius && player.x + player.width > c.x - c.radius &&
                     player.y < c.y + c.radius && player.y + player.height > c.y - c.radius) {
                     c.active = false;
                     totalCoins++;
                     score += 50;
-                    coinSound.play(); // Play Coin Sound
+                    updateScoreDisplay();
+                    coinSound.play();
                 }
             });
 
-            // Scrolling
+            // Camera Scrolling
             if (player.y < canvas.height / 2.5) {
                 let diff = canvas.height / 2.5 - player.y;
                 player.y = canvas.height / 2.5;
                 score += 1;
-                scoreDisplay.innerText = "Score: " + score;
+                updateScoreDisplay();
 
                 platforms.forEach(p => {
                     p.y += diff;
@@ -133,49 +149,5 @@
 
             if (player.y > canvas.height) {
                 gameState = "OVER";
-                gameOverSound.play(); // Play Game Over Sound
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (gameState === "PLAY") {
-                // Draw Player
-                ctx.fillStyle = "#2ecc71";
-                ctx.fillRect(player.x, player.y, player.width, player.height);
+                gameOverSound.play();
                 
-                // Draw Platforms
-                platforms.forEach(p => {
-                    ctx.fillStyle = p.isMoving ? "#3498db" : "#e67e22";
-                    ctx.fillRect(p.x, p.y, p.width, p.height);
-                });
-
-                // Draw Coins
-                ctx.fillStyle = "#f1c40f";
-                coins.forEach(c => {
-                    if (c.active) {
-                        ctx.beginPath();
-                        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                });
-            } else {
-                ctx.fillStyle = "rgba(0,0,0,0.8)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "white";
-                ctx.font = "bold 30px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
-                ctx.font = "20px Arial";
-                ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2 + 20);
-                ctx.fillText("Tap to Restart", canvas.width / 2, canvas.height / 2 + 60);
-            }
-            update();
-            requestAnimationFrame(draw);
-        }
-
-        initGame();
-        draw();
-    </script>
-</body>
-</html>
