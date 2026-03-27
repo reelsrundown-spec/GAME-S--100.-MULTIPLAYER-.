@@ -14,23 +14,23 @@
         
         /* Custom Alert Style */
         #customAlert {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #ffce00;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            z-index: 1000;
-            width: 250px;
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: #1e1e1e;
+            padding: 20px; border-radius: 15px; border: 2px solid #ffce00;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000; width: 250px;
         }
         #customAlert p { margin-bottom: 20px; font-weight: bold; color: #fff; }
-        #customAlert button {
-            background: #ffce00; color: #121212; border: none;
-            padding: 8px 25px; border-radius: 5px; font-weight: bold; cursor: pointer;
+        #customAlert button { background: #ffce00; color: #121212; border: none; padding: 8px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        /* Full Screen Result Overlay */
+        #resultOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column;
+            justify-content: center; align-items: center;
         }
+        #resultText { font-size: 3rem; font-weight: bold; margin-bottom: 20px; }
+        .win-text { color: #27ae60; text-shadow: 0 0 20px #27ae60; }
+        .lose-text { color: #e74c3c; text-shadow: 0 0 20px #e74c3c; }
 
         .bingo-letters { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; font-size: 24px; font-weight: bold; }
         .letter { opacity: 0.2; transition: 0.3s; color: #ffce00; }
@@ -49,8 +49,13 @@
     <div class="nav-bar"><a href="index.html" class="back-btn"><- Back</a><span>BINGO</span></div>
     <h2>BINGO</h2>
 
+    <div id="resultOverlay">
+        <div id="resultText"></div>
+        <button class="reset-btn" onclick="location.reload()">Play Again</button>
+    </div>
+
     <div id="customAlert">
-        <p id="alertMessage">Please join a room first!</p>
+        <p id="alertMessage"></p>
         <button onclick="closeAlert()">OK</button>
     </div>
 
@@ -64,12 +69,13 @@
     </div>
 
     <div id="bingoGrid" class="grid"></div>
-    <div id="status">Ready to play?</div>
+    <div id="status">Join a room!</div>
     <button class="reset-btn" onclick="initBingo()">Shuffle Board</button>
 
     <script>
         const clickSound = new Audio('jump.mp3');
-        const winSound = new Audio('gameover.mp3');
+        const winSound = new Audio('dora.mp3');
+        const loseSound = new Audio('lose.mp3');
 
         const firebaseConfig = { databaseURL: "https://multiplayer-bingo-e27fd-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
@@ -78,7 +84,6 @@
         let playerBoard = [], markedIndices = new Set(), bingoCount = 0;
         let gameActive = false, currentRoom = "", myId = "p_" + Math.floor(Math.random() * 99999), turnOwner = "";
 
-        // Custom Alert Function
         function showAlert(msg) {
             document.getElementById('alertMessage').innerText = msg;
             document.getElementById('customAlert').style.display = 'block';
@@ -92,6 +97,10 @@
             db.ref('rooms/' + currentRoom).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
+                    if (data.winner) {
+                        endGame(data.winner);
+                        return;
+                    }
                     turnOwner = data.turn;
                     if (data.lastMove) syncMove(data.lastMove);
                     updateUI();
@@ -163,9 +172,25 @@
             if (d1) lines++; if (d2) lines++;
             bingoCount = lines; updateBingoDisplay();
             if (bingoCount >= 5 && gameActive) {
+                // Inform Firebase that I won
+                db.ref('rooms/' + currentRoom).update({ winner: myId });
+            }
+        }
+
+        function endGame(winnerId) {
+            gameActive = false;
+            const overlay = document.getElementById('resultOverlay');
+            const text = document.getElementById('resultText');
+            overlay.style.display = 'flex';
+
+            if (winnerId === myId) {
+                text.innerText = "നീ ജയിച്ചു! 🎉";
+                text.className = "win-text";
                 winSound.play();
-                document.getElementById('status').innerText = "BINGO! YOU WIN! 🎉";
-                gameActive = false;
+            } else {
+                text.innerText = "നീ തോറ്റു! 👎";
+                text.className = "lose-text";
+                loseSound.play();
             }
         }
 
