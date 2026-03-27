@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo - Game Hub</title>
+    <title>Multiplayer Bingo</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
         .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 400px; margin: 0 auto; }
@@ -17,26 +19,56 @@
         .cell.marked { background: #ffce00; color: #121212; border-color: #fff; transform: scale(0.95); }
         #status { margin-top: 20px; font-size: 1.1rem; color: #aaa; height: 25px; }
         .reset-btn { margin-top: 20px; padding: 12px 30px; background: #ffce00; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #121212; }
+        .room-controls { margin-bottom: 15px; }
+        input { padding: 8px; border-radius: 5px; border: none; }
     </style>
 </head>
 <body>
     <div class="nav-bar">
-        <a href="index.html" class="back-btn">← Back</a>
-        <span>BINGO</span>
+        <a href="index.html" class="back-btn"><- Back</a>
+        <span>ONLINE BINGO</span>
     </div>
-    <h2>BINGO</h2>
+
+    <div class="room-controls">
+        <input type="text" id="roomInput" placeholder="Enter Room Code">
+        <button class="back-btn" onclick="joinRoom()">Join Room</button>
+    </div>
+
     <div class="bingo-letters" id="bingoDisplay">
         <span class="letter">B</span><span class="letter">I</span><span class="letter">N</span><span class="letter">G</span><span class="letter">O</span>
     </div>
+
     <div class="grid" id="bingoGrid"></div>
-    <div id="status">Your Turn!</div>
-    <button class="reset-btn" onclick="initBingo()">New Game</button>
+    <div id="status">Enter room code to play!</div>
+    <button class="reset-btn" onclick="initBingo()">Shuffle Board</button>
 
     <script>
+        // --- Firebase Configuration (Replace with your own later) ---
+        const firebaseConfig = {
+            databaseURL: "https://your-database-name.firebaseio.com/" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let playerBoard = [];
         let markedIndices = new Set();
         let bingoCount = 0;
-        let gameActive = true;
+        let gameActive = false;
+        let currentRoom = "";
+
+        function joinRoom() {
+            currentRoom = document.getElementById('roomInput').value;
+            if (!currentRoom) return alert("Enter a room name!");
+            
+            db.ref('rooms/' + currentRoom).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.lastMove) {
+                    syncMove(data.lastMove);
+                }
+            });
+            gameActive = true;
+            document.getElementById('status').innerText = "Connected to room: " + currentRoom;
+        }
 
         function initBingo() {
             const gridElement = document.getElementById('bingoGrid');
@@ -44,43 +76,38 @@
             playerBoard = [];
             markedIndices.clear();
             bingoCount = 0;
-            gameActive = true;
             updateBingoDisplay();
-            document.getElementById('status').innerText = "Click a number!";
+            
             let nums = Array.from({length: 25}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             nums.forEach((num, index) => {
                 playerBoard.push(num);
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.innerText = num;
-                cell.onclick = () => handleMove(index);
+                cell.setAttribute('data-num', num);
+                cell.onclick = () => handleMove(num);
                 gridElement.appendChild(cell);
             });
         }
 
-        function handleMove(index) {
-            if (!gameActive || markedIndices.has(index)) return;
-            markCell(index);
-            if (gameActive) {
-                document.getElementById('status').innerText = "AI is thinking...";
-                setTimeout(cpuMove, 600);
+        function handleMove(num) {
+            if (!gameActive || !currentRoom) return;
+            // Send move to Firebase
+            db.ref('rooms/' + currentRoom).set({ lastMove: num });
+        }
+
+        function syncMove(num) {
+            const index = playerBoard.indexOf(num);
+            if (index !== -1 && !markedIndices.has(index)) {
+                markCell(index);
             }
         }
 
         function markCell(index) {
             markedIndices.add(index);
             const cells = document.querySelectorAll('.cell');
-            cells[index].classList.add('marked');
+            if (cells[index]) cells[index].classList.add('marked');
             checkBingo();
-        }
-
-        function cpuMove() {
-            if (!gameActive) return;
-            let unmarked = playerBoard.map((_, i) => !markedIndices.has(i) ? i : null).filter(v => v !== null);
-            if (unmarked.length > 0) {
-                markCell(unmarked[Math.floor(Math.random() * unmarked.length)]);
-                if (gameActive) document.getElementById('status').innerText = "Your Turn!";
-            }
         }
 
         function checkBingo() {
@@ -104,8 +131,7 @@
             bingoCount = lines;
             updateBingoDisplay();
             if (bingoCount >= 5) {
-                // Unicode for: നീ ജയിച്ചു! 🎉
-                document.getElementById('status').innerText = "\u0D28\u0D40 \u0D1C\u0D2F\u0D30\u0D4D\u0D1A\u0D4D\u0D1A\u0D41! 🎉";
+                document.getElementById('status').innerText = "YOU WIN! 🎉";
                 gameActive = false;
             }
         }
@@ -114,8 +140,8 @@
             const letters = document.querySelectorAll('.letter');
             letters.forEach((l, i) => l.className = i < bingoCount ? 'letter active' : 'letter');
         }
+
         initBingo();
     </script>
 </body>
-  </html>
-  
+</html>
