@@ -2,12 +2,12 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const scoreElement = document.getElementById("scoreVal");
 
-const box = 20;
+const box = 25; // Size slightly increased
 canvas.width = 300; 
-canvas.height = 360;
+canvas.height = 400;
 
-let bat = [{ x: 8 * box, y: 10 * box }];
-let food = { x: Math.floor(Math.random() * 14) * box, y: Math.floor(Math.random() * 14 + 2) * box };
+let bat = [{ x: 6 * box, y: 10 * box }];
+let food = { x: Math.floor(Math.random() * 11) * box, y: Math.floor(Math.random() * 13 + 2) * box };
 let stones = []; 
 let score = 0;
 let foodCounter = 0;
@@ -21,26 +21,23 @@ function changeDir(direction) {
 }
 
 function draw() {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#000"; // Dark background
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Bat Drawing
+    // Draw Bat (Emoji)
+    ctx.font = "20px serif";
     for (let i = 0; i < bat.length; i++) {
-        ctx.fillStyle = (i == 0) ? "#a29bfe" : "#6c5ce7";
-        ctx.fillRect(bat[i].x, bat[i].y, box, box);
+        ctx.fillText(i == 0 ? "🦇" : "🌑", bat[i].x, bat[i].y + box);
     }
 
-    // Food
-    ctx.fillStyle = "#55efc4";
-    ctx.fillRect(food.x, food.y, box, box);
+    // Draw Food (Insect Emoji)
+    ctx.fillText("🦟", food.x, food.y + box);
 
-    // Falling Stones
-    ctx.fillStyle = "#ff7675";
+    // Draw Falling Obstacles (Rock Emoji)
     for(let i=0; i<stones.length; i++) {
-        ctx.fillRect(stones[i].x, stones[i].y, box, box);
-        stones[i].y += 4; // കല്ല് താഴേക്ക് വരുന്ന വേഗത
+        ctx.fillText("🌑", stones[i].x, stones[i].y + box);
+        stones[i].y += 5;
 
-        // വവ്വാലിന്റെ തലയിൽ കല്ല് കൊണ്ടാൽ ഔട്ട്
         if(Math.abs(stones[i].x - bat[0].x) < box && Math.abs(stones[i].y - bat[0].y) < box) {
             gameOver();
         }
@@ -58,10 +55,10 @@ function draw() {
         score++;
         foodCounter++;
         scoreElement.innerHTML = score;
-        food = { x: Math.floor(Math.random() * 14) * box, y: Math.floor(Math.random() * 14 + 2) * box };
+        food = { x: Math.floor(Math.random() * 11) * box, y: Math.floor(Math.random() * 13 + 2) * box };
         
         if(foodCounter % 5 == 0) {
-            stones.push({ x: Math.floor(Math.random() * 14) * box, y: 0 });
+            stones.push({ x: Math.floor(Math.random() * 11) * box, y: 0 });
         }
     } else {
         bat.pop();
@@ -90,4 +87,3 @@ function gameOver() {
 }
 
 let game = setInterval(draw, 150);
-          
