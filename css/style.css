@@ -1,76 +1,66 @@
 :root {
-    --bg: #121212;
-    --card: #1e1e1e;
-    --primary: #6200ee;
-    --text: #ffffff;
-    --x-color: #ff4d4d;
-    --o-color: #4d94ff;
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #38bdf8;
+    --text: #f8fafc;
 }
 
 body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: sans-serif;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    align-items: center;
+    height: 100vh;
     margin: 0;
 }
 
-.menu, .game-area {
-    width: 90%;
-    max-width: 400px;
+.container {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 1rem;
     text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
 .hidden { display: none; }
 
-.grid {
+h1, h2 { color: var(--accent); margin-bottom: 1.5rem; }
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #0f172a;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.back-btn { background: #475569; color: white; }
+
+.board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 10px;
     margin: 20px 0;
 }
 
 .cell {
     aspect-ratio: 1/1;
-    background: var(--card);
-    border-radius: 12px;
+    background: #334155;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.8rem;
+    font-size: 2rem;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 
-.cell:active { transform: scale(0.95); }
-.cell.x { color: var(--x-color); }
-.cell.o { color: var(--o-color); }
-
-button {
-    width: 100%;
-    padding: 15px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 10px;
-    background: var(--primary);
-    color: white;
-    font-size: 1.1rem;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.back-btn { background: #333; margin-top: 20px; }
-
-#status {
-    font-size: 1.3rem;
-    margin: 15px;
-    color: #ffeb3b;
-    height: 30px;
-}
-
+#status-text { margin-bottom: 10px; font-weight: bold; color: #fbbf24; }
