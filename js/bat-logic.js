@@ -2,88 +2,109 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const scoreElement = document.getElementById("scoreVal");
 
-const box = 25; // Size slightly increased
-canvas.width = 300; 
-canvas.height = 400;
+canvas.width = 320; 
+canvas.height = 380;
 
-let bat = [{ x: 6 * box, y: 10 * box }];
-let food = { x: Math.floor(Math.random() * 11) * box, y: Math.floor(Math.random() * 13 + 2) * box };
-let stones = []; 
+let batSize = 1.5; // Scale for pixel art
+let batX = canvas.width / 2;
+let batY = canvas.height / 2;
+let speed = 4;
+let frame = 0; // For animation
+
+let food = {
+    x: Math.random() * (canvas.width - 40) + 20,
+    y: Math.random() * (canvas.height - 40) + 20
+};
+
+let stones = [];
 let score = 0;
 let foodCounter = 0;
-let d = "RIGHT";
+let direction = "STATIONARY";
 
-function changeDir(direction) {
-    if (direction == 'LEFT' && d != 'RIGHT') d = 'LEFT';
-    if (direction == 'UP' && d != 'DOWN') d = 'UP';
-    if (direction == 'RIGHT' && d != 'LEFT') d = 'RIGHT';
-    if (direction == 'DOWN' && d != 'UP') d = 'DOWN';
+function changeDir(d) {
+    direction = d;
 }
 
-function draw() {
-    ctx.fillStyle = "#000"; // Dark background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Function to draw pixelated bat
+function drawPixelBat(x, y, scale) {
+    ctx.fillStyle = "#333";
+    frame++;
 
-    // Draw Bat (Emoji)
+    // Simple pixel animation logic
+    let wingPos = Math.sin(frame * 0.2) > 0 ? 0 : 2;
+
+    // Body
+    ctx.fillRect(x - (2 * scale), y, 4 * scale, 4 * scale);
+    
+    // Wings (Animated)
+    ctx.fillRect(x - (8 * scale), y - (wingPos * scale), 6 * scale, 2 * scale);
+    ctx.fillRect(x + (2 * scale), y - (wingPos * scale), 6 * scale, 2 * scale);
+    
+    // Ears
+    ctx.fillRect(x - (2 * scale), y - (2 * scale), scale, scale);
+    ctx.fillRect(x + (scale), y - (2 * scale), scale, scale);
+
+    // Eyes
+    ctx.fillStyle = "white";
+    ctx.fillRect(x - scale, y + scale, scale, scale);
+    ctx.fillRect(x + scale, y + scale, scale, scale);
+}
+
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Mosquito
     ctx.font = "20px serif";
-    for (let i = 0; i < bat.length; i++) {
-        ctx.fillText(i == 0 ? "🦇" : "🌑", bat[i].x, bat[i].y + box);
-    }
+    ctx.fillText("🦟", food.x, food.y);
 
-    // Draw Food (Insect Emoji)
-    ctx.fillText("🦟", food.x, food.y + box);
+    // Draw Stones
+    for (let i = 0; i < stones.length; i++) {
+        ctx.fillText("🌑", stones[i].x, stones[i].y);
+        stones[i].y += 3;
 
-    // Draw Falling Obstacles (Rock Emoji)
-    for(let i=0; i<stones.length; i++) {
-        ctx.fillText("🌑", stones[i].x, stones[i].y + box);
-        stones[i].y += 5;
-
-        if(Math.abs(stones[i].x - bat[0].x) < box && Math.abs(stones[i].y - bat[0].y) < box) {
-            gameOver();
+        let dist = Math.hypot(stones[i].x - batX, stones[i].y - batY);
+        if (dist < (batSize * 10)) {
+            alert("Game Over! Score: " + score);
+            location.reload();
         }
     }
 
-    let batX = bat[0].x;
-    let batY = bat[0].y;
+    // Movement
+    if (direction === "UP") batY -= speed;
+    if (direction === "DOWN") batY += speed;
+    if (direction === "LEFT") batX -= speed;
+    if (direction === "RIGHT") batX += speed;
 
-    if (d == "LEFT") batX -= box;
-    if (d == "UP") batY -= box;
-    if (d == "RIGHT") batX += box;
-    if (d == "DOWN") batY += box;
+    // Draw Animated Pixel Bat
+    drawPixelBat(batX, batY, batSize);
 
-    if (batX == food.x && batY == food.y) {
+    // Eat Logic
+    let distToFood = Math.hypot(batX - food.x, batY - food.y);
+    if (distToFood < (batSize * 10) + 10) {
         score++;
         foodCounter++;
         scoreElement.innerHTML = score;
-        food = { x: Math.floor(Math.random() * 11) * box, y: Math.floor(Math.random() * 13 + 2) * box };
         
-        if(foodCounter % 5 == 0) {
-            stones.push({ x: Math.floor(Math.random() * 11) * box, y: 0 });
+        // Grow bigger!
+        batSize += 0.2; 
+        
+        food = {
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: Math.random() * (canvas.height - 40) + 20
+        };
+
+        if (foodCounter % 5 === 0) {
+            stones.push({ x: Math.random() * canvas.width, y: 0 });
         }
-    } else {
-        bat.pop();
     }
 
-    let newHead = { x: batX, y: batY };
-
-    if (batX < 0 || batX >= canvas.width || batY < 0 || batY >= canvas.height || collision(newHead, bat)) {
-        gameOver();
+    // Boundary Check
+    if (batX < 0 || batX > canvas.width || batY < 0 || batY > canvas.height) {
+        alert("Hit the wall! Game Over");
+        location.reload();
     }
 
-    bat.unshift(newHead);
+    requestAnimationFrame(update);
 }
 
-function collision(head, array) {
-    for (let i = 0; i < array.length; i++) {
-        if (head.x == array[i].x && head.y == array[i].y) return true;
-    }
-    return false;
-}
-
-function gameOver() {
-    clearInterval(game);
-    alert("Game Over! Score: " + score);
-    location.reload();
-}
-
-let game = setInterval(draw, 150);
+update();
