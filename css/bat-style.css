@@ -1,0 +1,11 @@
+body { background: #121212; color: white; text-align: center; font-family: sans-serif; margin: 0; overflow: hidden; }
+canvas { background: #000; border: 2px solid #444; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
+.header { font-size: 24px; padding: 10px; color: #a29bfe; }
+.controls { margin-top: 15px; }
+button { 
+    width: 70px; height: 60px; font-size: 14px; font-weight: bold;
+    background: #2d3436; color: white; border: 1px solid #636e72; border-radius: 8px; margin: 3px;
+}
+button:active { background: #00cec9; }
+.row { display: flex; justify-content: center; }
+
