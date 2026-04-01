@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - AI</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; max-width: 350px; margin: 0 auto; padding: 10px; }
+        .back-btn { background: #2c3e50; color: white; border: none; padding: 10px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+        #status { font-size: 1.3rem; margin: 20px 0; font-weight: bold; color: #00d2ff; height: 35px; }
+        .diff-box { margin-bottom: 20px; }
+        .diff-btn { background: #333; color: white; border: 1px solid #555; padding: 8px 12px; border-radius: 8px; margin: 0 3px; cursor: pointer; font-size: 12px; }
+        .diff-btn.active { background: #00d2ff; color: #000; border-color: #00d2ff; }
+        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 0 auto; background: #222; padding: 12px; border-radius: 15px; }
+        .cell { width: 90px; height: 90px; background: #1a1a1a; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; }
+        .cell.x { color: #ff6b6b; } .cell.o { color: #00d2ff; }
+        .cell.winner { background: #00d2ff !important; color: #121212 !important; }
+        .restart-btn { margin-top: 25px; background: #ffce00; color: #000; border: none; padding: 12px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <a href="../tichome.html" class="back-btn">← Back</a>
+        <span>VS COMPUTER</span>
+    </div>
+    <div id="status">Your Turn (X)</div>
+    <div class="diff-box">
+        <button class="diff-btn active" onclick="setDiff('easy', this)">EASY</button>
+        <button class="diff-btn" onclick="setDiff('normal', this)">NORMAL</button>
+        <button class="diff-btn" onclick="setDiff('hard', this)">HARD</button>
+    </div>
+    <div class="board" id="board">
+        <div class="cell" onclick="playerMove(0)" id="c0"></div>
+        <div class="cell" onclick="playerMove(1)" id="c1"></div>
+        <div class="cell" onclick="playerMove(2)" id="c2"></div>
+        <div class="cell" onclick="playerMove(3)" id="c3"></div>
+        <div class="cell" onclick="playerMove(4)" id="c4"></div>
+        <div class="cell" onclick="playerMove(5)" id="c5"></div>
+        <div class="cell" onclick="playerMove(6)" id="c6"></div>
+        <div class="cell" onclick="playerMove(7)" id="c7"></div>
+        <div class="cell" onclick="playerMove(8)" id="c8"></div>
+    </div>
+    <button class="restart-btn" onclick="resetGame()">RESTART</button>
+
+    <script>
+        let board = Array(9).fill("");
+        let gameActive = true;
+        let isWaiting = false;
+        let diff = 'easy';
+
+        function setDiff(d, b) { diff = d; document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active')); b.classList.add('active'); resetGame(); }
+
+        function playerMove(i) {
+            if (board[i] !== "" || !gameActive || isWaiting) return;
+            board[i] = "X"; updateUI();
+            if (!checkWin()) {
+                isWaiting = true;
+                document.getElementById('status').innerText = "AI Thinking...";
+                setTimeout(aiMove, 800);
+            }
+        }
+
+        function aiMove() {
+            let move;
+            if (diff === 'easy') move = randomMove();
+            else if (diff === 'normal') move = Math.random() > 0.5 ? bestMove() : randomMove();
+            else move = bestMove();
+
+            if (move !== null) {
+                board[move] = "O"; updateUI();
+                if (!checkWin()) { isWaiting = false; document.getElementById('status').innerText = "Your Turn (X)"; }
+            }
+        }
+
+        function randomMove() {
+            let empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            return empty.length > 0 ? empty[Math.floor(Math.random() * empty.length)] : null;
+        }
+
+        function bestMove() {
+            // Simple logic: Win or Block
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let p of ["O", "X"]) {
+                for (let c of wins) {
+                    let count = c.filter(idx => board[idx] === p).length;
+                    let empty = c.filter(idx => board[idx] === "");
+                    if (count === 2 && empty.length === 1) return empty[0];
+                }
+            }
+            return randomMove();
+        }
+
+        function updateUI() { board.forEach((v, i) => { const c = document.getElementById('c'+i); c.innerText = v; c.className = 'cell ' + v.toLowerCase(); }); }
+
+        function checkWin() {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let c of wins) {
+                if (board[c[0]] && board[c[0]] === board[c[1]] && board[c[0]] === board[c[2]]) {
+                    document.getElementById('status').innerText = board[c[0]] === "X" ? "YOU WIN! 🎉" : "AI WINS! 🤖";
+                    c.forEach(idx => document.getElementById('c'+idx).classList.add('winner'));
+                    gameActive = false; return true;
+                }
+            }
+            if (!board.includes("")) { document.getElementById('status').innerText = "DRAW! 🤝"; gameActive = false; return true; }
+            return false;
+        }
+
+        function resetGame() { board = Array(9).fill(""); gameActive = true; isWaiting = false; document.getElementById('status').innerText = "Your Turn (X)"; document.querySelectorAll('.cell').forEach(c => c.classList.remove('winner')); updateUI(); }
+    </script>
+</body>
+</html>
+
