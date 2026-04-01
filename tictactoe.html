@@ -8,14 +8,11 @@
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
         .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 350px; margin: 0 auto; }
         .back-btn { background: #2c3e50; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 14px; }
-        
-        #status { font-size: 1.2rem; margin: 20px 0; font-weight: bold; height: 30px; transition: 0.3s; }
+        #status { font-size: 1.2rem; margin: 20px 0; font-weight: bold; height: 30px; }
         .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 0 auto; background: #333; padding: 10px; border-radius: 15px; }
         .cell { width: 90px; height: 90px; background: #1e1e1e; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; }
-        .cell.x { color: #ff6b6b; }
-        .cell.o { color: #00d2ff; }
-        
-        #player-id { margin-top: 20px; font-size: 14px; color: #666; font-weight: bold; }
+        .cell.x { color: #ff6b6b; } .cell.o { color: #00d2ff; }
+        #player-id { margin-top: 20px; font-size: 14px; color: #888; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -45,6 +42,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.11.0/firebase-database-compat.js"></script>
 
     <script>
+        // --- FIXED CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAC0Ancjw96eamzv0Ja7vMvpETleysfcqQ",
             authDomain: "multiplayer-bingo-e27fd.firebaseapp.com",
@@ -60,15 +58,14 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode') || 'ai';
-        const roomCode = urlParams.get('room') || 'public_match';
+        const roomCode = urlParams.get('room') || 'public';
 
         let board = Array(9).fill("");
         let currentPlayer = "X";
         let gameActive = true;
         let mySymbol = (mode === 'ai') ? "X" : null; 
-        let gameRef = database.ref('tictactoe_rooms/' + (mode === 'friend' ? roomCode : 'public'));
+        let gameRef = database.ref('tictactoe_rooms/' + roomCode);
 
-        // Initialize Game
         if (mode === 'ai') {
             document.getElementById('status').innerText = "Your Turn (X)";
             document.getElementById('player-id').innerText = "Mode: Single Player";
@@ -77,10 +74,68 @@
         }
 
         function initOnline() {
-            // Player Assignment Logic
             gameRef.once('value', (snap) => {
                 const data = snap.val();
                 if (!data || !data.playerX) {
                     mySymbol = "X";
-                    gameRef.update({ playerX: true });
+                    gameRef.update({ playerX: true, board: board, turn: "X", active: true });
+                } else if (!data.playerO) {
+                    mySymbol = "O";
+                    gameRef.update({ playerO: true });
+                } else {
+                    mySymbol = "VIEWER";
+                }
+                document.getElementById('player-id').innerText = "YOU ARE: " + mySymbol;
+            });
+
+            gameRef.on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    board = data.board || Array(9).fill("");
+                    currentPlayer = data.turn || "X";
+                    gameActive = (data.active !== undefined) ? data.active : true;
+                    updateUI();
                     
+                    if (gameActive) {
+                        document.getElementById('status').innerText = (currentPlayer === mySymbol) ? "YOUR TURN!" : "OPPONENT'S TURN";
+                    }
+                }
+            });
+        }
+
+        function handleMove(i) {
+            if (board[i] !== "" || !gameActive) return;
+            if (mode === 'ai') {
+                board[i] = "X"; updateUI();
+                if (!checkWin()) { currentPlayer = "O"; setTimeout(aiMove, 600); }
+            } else if (currentPlayer === mySymbol) {
+                board[i] = mySymbol;
+                gameRef.update({ board: board, turn: mySymbol === "X" ? "O" : "X" });
+            }
+        }
+
+        function aiMove() {
+            let empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            if (empty.length > 0) { board[empty[Math.floor(Math.random() * empty.length)]] = "O"; currentPlayer = "X"; updateUI(); checkWin(); }
+        }
+
+        function updateUI() {
+            board.forEach((val, i) => { const c = document.getElementById('c' + i); c.innerText = val; c.className = 'cell ' + val.toLowerCase(); });
+        }
+
+        function checkWin() {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let c of wins) {
+                if (board[c[0]] && board[c[0]] === board[c[1]] && board[c[0]] === board[c[2]]) {
+                    document.getElementById('status').innerText = board[c[0]] + " WINS!";
+                    gameActive = false;
+                    if (mode !== 'ai') gameRef.update({ active: false });
+                    return true;
+                }
+            }
+            if (!board.includes("")) { document.getElementById('status').innerText = "DRAW!"; gameActive = false; return true; }
+            return false;
+        }
+    </script>
+</body>
+</html>
