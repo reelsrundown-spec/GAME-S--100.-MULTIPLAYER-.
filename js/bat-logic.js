@@ -1,34 +1,31 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreVal = document.getElementById('scoreVal');
-const msg = document.getElementById('msg');
+const msg = document.getElementById('status-msg');
 const stick = document.getElementById('joystick-stick');
-const base = document.getElementById('joystick-base');
+const base = document.getElementById('joyBase');
 
-canvas.width = 300;
-canvas.height = 400;
+canvas.width = 280;
+canvas.height = 350;
 
 let score = 0;
 let gameActive = true;
-let bat = { x: 130, y: 330, w: 40, h: 40 };
+let bat = { x: 120, y: 280, w: 35, h: 35 };
 let obstacles = [];
 let speed = 4;
 let velocity = { x: 0, y: 0 };
+const maxRadius = 35;
 
-// Joystick Logic
-let stickX = 0;
-let stickY = 0;
-const maxRadius = 40;
-
-base.addEventListener('touchstart', handleJoystick);
-base.addEventListener('touchmove', handleJoystick);
+// Joystick Movement Logic
+base.addEventListener('touchstart', moveJoystick);
+base.addEventListener('touchmove', moveJoystick);
 base.addEventListener('touchend', () => {
     stick.style.transform = `translate(0px, 0px)`;
     velocity.x = 0;
     velocity.y = 0;
 });
 
-function handleJoystick(e) {
+function moveJoystick(e) {
     if (!gameActive) return;
     e.preventDefault();
     const touch = e.touches[0];
@@ -38,51 +35,46 @@ function handleJoystick(e) {
 
     let dx = touch.clientX - centerX;
     let dy = touch.clientY - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance > maxRadius) {
-        dx *= maxRadius / distance;
-        dy *= maxRadius / distance;
+    if (dist > maxRadius) {
+        dx *= maxRadius / dist;
+        dy *= maxRadius / dist;
     }
 
     stick.style.transform = `translate(${dx}px, ${dy}px)`;
-
-    // Calculate velocity based on stick position
     velocity.x = (dx / maxRadius) * speed;
     velocity.y = (dy / maxRadius) * speed;
 }
 
-// Game Loop
 function update() {
     if (!gameActive) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update Bat Position
+    // Bat movement & boundaries
     bat.x += velocity.x;
     bat.y += velocity.y;
-
-    // Keep Bat inside Canvas
     if (bat.x < 0) bat.x = 0;
     if (bat.y < 0) bat.y = 0;
     if (bat.x > canvas.width - bat.w) bat.x = canvas.width - bat.w;
     if (bat.y > canvas.height - bat.h) bat.y = canvas.height - bat.h;
 
-    // Obstacle Logic
-    if (Math.random() < 0.03) {
-        obstacles.push({ x: Math.random() * (canvas.width - 30), y: -30, w: 30, h: 30 });
+    // Obstacles
+    if (Math.random() < 0.02) {
+        obstacles.push({ x: Math.random() * (canvas.width - 25), y: -25, w: 25, h: 25 });
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
         let o = obstacles[i];
-        o.y += 3;
+        o.y += 3.5;
 
-        // Collision
+        // Collision Check
         if (bat.x < o.x + o.w && bat.x + bat.w > o.x && bat.y < o.y + o.h && bat.y + bat.h > o.y) {
-            endGame();
+            gameOver();
         }
 
-        ctx.fillStyle = '#ff4757';
+        ctx.fillStyle = "#ff7675";
         ctx.fillRect(o.x, o.y, o.w, o.h);
 
         if (o.y > canvas.height) {
@@ -92,24 +84,24 @@ function update() {
         }
     }
 
-    // Draw Bat
-    ctx.fillStyle = '#2f3542';
+    // Draw Bat (Old style rectangle)
+    ctx.fillStyle = "#a29bfe";
     ctx.fillRect(bat.x, bat.y, bat.w, bat.h);
 
     requestAnimationFrame(update);
 }
 
-function endGame() {
+function gameOver() {
     gameActive = false;
     msg.style.display = 'block';
-    setTimeout(resetGame, 3000);
+    setTimeout(reset, 3000);
 }
 
-function resetGame() {
+function reset() {
     score = 0;
     obstacles = [];
     velocity = { x: 0, y: 0 };
-    bat = { x: 130, y: 330, w: 40, h: 40 };
+    bat = { x: 120, y: 280, w: 35, h: 35 };
     scoreVal.innerText = '0';
     msg.style.display = 'none';
     gameActive = true;
