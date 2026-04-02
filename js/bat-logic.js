@@ -10,7 +10,7 @@ canvas.height = 350;
 
 let score = 0;
 let gameActive = true;
-let bat = { x: 120, y: 280, w: 35, h: 35 };
+let bat = { x: 120, y: 280, w: 40, h: 40, color: "#121212" }; // Bat properties
 let obstacles = [];
 let speed = 4;
 let velocity = { x: 0, y: 0 };
@@ -47,6 +47,39 @@ function moveJoystick(e) {
     velocity.y = (dy / maxRadius) * speed;
 }
 
+// Draw the Vector Bat Shape
+function drawBat(x, y, w, h) {
+    ctx.fillStyle = bat.color;
+    ctx.beginPath();
+    
+    // Head & Ears
+    ctx.moveTo(x + w * 0.5, y + h * 0.25);
+    ctx.lineTo(x + w * 0.45, y + h * 0.1);
+    ctx.lineTo(x + w * 0.55, y + h * 0.1);
+    ctx.closePath();
+    
+    // Body
+    ctx.moveTo(x + w * 0.5, y + h * 0.25);
+    ctx.lineTo(x + w * 0.4, y + h * 0.5);
+    ctx.lineTo(x + w * 0.5, y + h * 0.75);
+    ctx.lineTo(x + w * 0.6, y + h * 0.5);
+    ctx.closePath();
+    
+    // Left Wing
+    ctx.moveTo(x + w * 0.5, y + h * 0.25);
+    ctx.bezierCurveTo(x + w * 0.2, y + h * 0.1, x, y + h * 0.4, x + w * 0.5, y + h * 0.5);
+    ctx.bezierCurveTo(x + w * 0.1, y + h * 0.7, x, y + h * 0.8, x + w * 0.5, y + h * 0.5);
+    ctx.closePath();
+    
+    // Right Wing
+    ctx.moveTo(x + w * 0.5, y + h * 0.25);
+    ctx.bezierCurveTo(x + w * 0.8, y + h * 0.1, x + w, y + h * 0.4, x + w * 0.5, y + h * 0.5);
+    ctx.bezierCurveTo(x + w * 0.9, y + h * 0.7, x + w, y + h * 0.8, x + w * 0.5, y + h * 0.5);
+    ctx.closePath();
+    
+    ctx.fill();
+}
+
 function update() {
     if (!gameActive) return;
 
@@ -74,7 +107,7 @@ function update() {
             gameOver();
         }
 
-        ctx.fillStyle = "#ff7675";
+        ctx.fillStyle = "#ff7675"; // Obstacle color
         ctx.fillRect(o.x, o.y, o.w, o.h);
 
         if (o.y > canvas.height) {
@@ -84,9 +117,8 @@ function update() {
         }
     }
 
-    // Draw Bat (Old style rectangle)
-    ctx.fillStyle = "#a29bfe";
-    ctx.fillRect(bat.x, bat.y, bat.w, bat.h);
+    // Draw the Vector Bat (Using the new function)
+    drawBat(bat.x, bat.y, bat.w, bat.h);
 
     requestAnimationFrame(update);
 }
@@ -101,7 +133,7 @@ function reset() {
     score = 0;
     obstacles = [];
     velocity = { x: 0, y: 0 };
-    bat = { x: 120, y: 280, w: 35, h: 35 };
+    bat = { x: 120, y: 280, w: 40, h: 40, color: "#121212" };
     scoreVal.innerText = '0';
     msg.style.display = 'none';
     gameActive = true;
